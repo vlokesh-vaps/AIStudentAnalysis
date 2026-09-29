@@ -27,23 +27,23 @@ Copy-Item .env.example .env
 Add your Groq API key to `.env` as `GROQ_API_KEY=...`, then start the app:
 
 ```powershell
-flask --app app run
+flask --app app run --port 8051
 ```
 
-Open [http://localhost:5000](http://localhost:5000) for the analyzer and [http://localhost:5000/swagger](http://localhost:5000/swagger) for interactive API documentation. The UI accepts CSV, XLSX, XLS, and PDF reports. Class and student narrative analysis requires a configured Groq API key.
+Open [http://localhost:8051](http://localhost:8051) for the analyzer and [http://localhost:8051/swagger](http://localhost:8051/swagger) for interactive API documentation. The UI accepts CSV, XLSX, XLS, and PDF reports. Class and student narrative analysis requires a configured Groq API key.
 
 ## Docker setup
 
-A Dockerfile is included for containerized runs. The container exposes port 5020:
+A Dockerfile is included for containerized runs. The container exposes port 8051:
 
 ```powershell
 docker build -t ai-student-analysis .
-docker run -p 5020:5020 --env PORT=5020 ai-student-analysis
+docker run -p 8051:8051 --env PORT=8051 ai-student-analysis
 ```
 
 Then open:
-- http://localhost:5020
-- http://localhost:5020/swagger
+- http://localhost:8051
+- http://localhost:8051/swagger
 
 ## API
 

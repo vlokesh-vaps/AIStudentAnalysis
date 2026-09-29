@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=5020 \
+    PORT=8051 \
     FLASK_ENV=production
 
 WORKDIR /app
@@ -13,6 +13,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-EXPOSE 5020
+EXPOSE 8051
 
 CMD ["python", "app.py"]

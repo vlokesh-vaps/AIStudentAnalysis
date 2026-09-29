@@ -20,7 +20,7 @@ This project is a Flask-based AI student performance analyzer. It parses class r
 - `static/` – JavaScript, CSS, and frontend assets.
 - `tests/` – test suite for parsing and validation logic.
 - `README.md` – project usage and setup reference.
-- `Dockerfile` – container setup for running the app on port 5020.
+- `Dockerfile` – container setup for running the app on port 8051.
 
 ## Agent responsibilities
 This agent is expected to fully inspect, modify, and improve the codebase as needed.
@@ -58,22 +58,22 @@ GROQ_API_KEY=your_key_here
 
 ## Run the app locally
 ```powershell
-flask --app app run
+flask --app app run --port 8051
 ```
 
 Open these in the browser:
-- http://localhost:5000
-- http://localhost:5000/swagger
+- http://localhost:8051
+- http://localhost:8051/swagger
 
 ## Run with Docker
 ```powershell
 docker build -t ai-student-analysis .
-docker run -p 5020:5020 --env PORT=5020 ai-student-analysis
+docker run -p 8051:8051 --env PORT=8051 ai-student-analysis
 ```
 
 Open these in the browser:
-- http://localhost:5020
-- http://localhost:5020/swagger
+- http://localhost:8051
+- http://localhost:8051/swagger
 
 ## Key APIs
 - `POST /api/upload` – upload a report file and parse students.
@@ -101,4 +101,4 @@ pytest
 - Uploaded files are limited to 25 MB by config.
 - Parsing should be resilient to missing values, grade strings, and inconsistent report formats.
 - The agent must be able to read the code, write patches, and update the project without requiring manual intervention from a human developer for routine changes.
-- Docker runs should expose the application on port 5020 and keep the runtime configuration aligned with that port.
+- Docker runs should expose the application on port 8051 and keep the runtime configuration aligned with that port.
