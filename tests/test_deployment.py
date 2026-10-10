@@ -18,9 +18,15 @@ class DocsDisabledConfig(Config):
     TRUSTED_PROXIES = 1
 
 
+class LocalRootConfig(Config):
+    APPLICATION_ROOT = ""
+    ENABLE_DOCS = True
+    TRUSTED_PROXIES = 1
+
+
 @pytest.fixture
 def standard_client():
-    app = create_app(Config)
+    app = create_app(LocalRootConfig)
     return app.test_client()
 
 
@@ -210,3 +216,36 @@ def test_trailing_slash_flexibility(standard_client):
 
     res_with_slash = standard_client.get("/api/health/")
     assert res_with_slash.status_code == 200
+
+
+# 12. Full URL passed in APPLICATION_ROOT is gracefully sanitized to path prefix
+def test_full_url_in_application_root():
+    import os
+    from config import Config
+    os.environ["APPLICATION_ROOT"] = "https://aifeatures.vapssmartecampus.com:8054/student-analysis/"
+    try:
+        class FullUrlConfig(Config):
+            raw_root = os.environ["APPLICATION_ROOT"]
+            # Trigger sanitize logic
+            from urllib.parse import urlparse
+            parsed = urlparse(raw_root)
+            APPLICATION_ROOT = parsed.path.rstrip("/")
+            PUBLIC_ORIGIN = f"{parsed.scheme}://{parsed.netloc}"
+            PREFERRED_URL_SCHEME = parsed.scheme
+
+        app = create_app(FullUrlConfig)
+        client = app.test_client()
+        res = client.get("/student-analysis/")
+        assert res.status_code == 200
+        html = res.data.decode("utf-8")
+        assert "/https:" not in html
+        assert 'href="/student-analysis/static/css/style.css"' in html
+        assert 'src="/student-analysis/static/js/app.js"' in html
+
+        css_res = client.get("/student-analysis/static/css/style.css")
+        assert css_res.status_code == 200
+        js_res = client.get("/student-analysis/static/js/app.js")
+        assert js_res.status_code == 200
+    finally:
+        os.environ["APPLICATION_ROOT"] = "/student-analysis"
+

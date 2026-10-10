@@ -26,12 +26,25 @@ class Config:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 
     # Application Base Path / URL Prefix (e.g., '/student-analysis' or empty for domain root)
-    APPLICATION_ROOT = (
+    raw_root = (
         os.getenv("APPLICATION_ROOT")
         or os.getenv("URL_PREFIX")
         or os.getenv("APP_BASE_PATH")
         or ""
-    ).strip().rstrip("/")
+    ).strip()
+
+    _inferred_origin = ""
+    _inferred_scheme = ""
+    if "://" in raw_root:
+        from urllib.parse import urlparse
+        parsed = urlparse(raw_root)
+        APPLICATION_ROOT = parsed.path.rstrip("/")
+        if parsed.netloc:
+            _inferred_origin = f"{parsed.scheme}://{parsed.netloc}"
+            _inferred_scheme = parsed.scheme
+    else:
+        APPLICATION_ROOT = raw_root.rstrip("/")
+
     if APPLICATION_ROOT and not APPLICATION_ROOT.startswith("/"):
         APPLICATION_ROOT = f"/{APPLICATION_ROOT}"
     URL_PREFIX = APPLICATION_ROOT
@@ -42,11 +55,12 @@ class Config:
         API_PREFIX = f"/{API_PREFIX}"
 
     # Public Origin (when absolute external URLs are explicitly needed)
-    PUBLIC_ORIGIN = os.getenv("PUBLIC_ORIGIN", "").strip().rstrip("/")
-    PREFERRED_URL_SCHEME = os.getenv(
-        "PREFERRED_URL_SCHEME",
-        "https" if os.getenv("PUBLIC_ORIGIN", "").startswith("https://") else "http"
-    ).strip().lower()
+    PUBLIC_ORIGIN = (os.getenv("PUBLIC_ORIGIN", "").strip() or _inferred_origin).rstrip("/")
+    PREFERRED_URL_SCHEME = (
+        os.getenv("PREFERRED_URL_SCHEME", "").strip().lower()
+        or _inferred_scheme
+        or ("https" if PUBLIC_ORIGIN.startswith("https://") else "http")
+    )
 
     # Reverse Proxy / Forwarded Headers
     # Number of trusted proxies in front of this application (defaults to 1)

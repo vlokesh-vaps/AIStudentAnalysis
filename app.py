@@ -27,12 +27,19 @@ class PrefixMiddleware:
         self.default_prefix = prefix.rstrip("/") if prefix else ""
 
     def __call__(self, environ, start_response):
-        prefix = (
+        raw_prefix = (
             environ.get("HTTP_X_FORWARDED_PREFIX")
             or environ.get("HTTP_X_SCRIPT_NAME")
             or environ.get("SCRIPT_NAME")
             or self.default_prefix
-        ).strip().rstrip("/")
+        ).strip()
+
+        if "://" in raw_prefix:
+            from urllib.parse import urlparse
+            prefix = urlparse(raw_prefix).path.rstrip("/")
+        else:
+            prefix = raw_prefix.rstrip("/")
+
         if prefix and not prefix.startswith("/"):
             prefix = f"/{prefix}"
 
