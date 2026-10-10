@@ -28,7 +28,7 @@ response_model = ns.model("ClassAnalysisResponse", {
 })
 
 
-@ns.route("")
+@ns.route("", strict_slashes=False)
 class ClassAnalysis(Resource):
     @ns.expect(request_model, validate=True)
     @ns.response(200, "Class analysis", response_model)

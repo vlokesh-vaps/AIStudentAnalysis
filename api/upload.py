@@ -20,7 +20,7 @@ student_model = ns.model("Student", {
 upload_response = ns.model("UploadResponse", {"students": fields.List(fields.Nested(student_model))})
 
 
-@ns.route("")
+@ns.route("", strict_slashes=False)
 class Upload(Resource):
     @ns.doc(consumes=["multipart/form-data"], description="Parse a CSV, Excel, or PDF class report.")
     @ns.expect(ns.parser().add_argument("file", location="files", type=FileStorage, required=True,

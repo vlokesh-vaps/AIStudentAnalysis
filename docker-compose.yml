@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-student-analysis:latest
+    container_name: ai-student-analysis
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - HOST=0.0.0.0
+      - PORT=8051
+      - WORKERS=${WORKERS:-2}
+      - THREADS=${THREADS:-4}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - SECRET_KEY=${SECRET_KEY:-ai-student-analysis-production-secret}
+      - APPLICATION_ROOT=${APPLICATION_ROOT:-}
+      - TRUST_PROXY_HEADERS=${TRUST_PROXY_HEADERS:-true}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-1}
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-25}
+      - ENABLE_DOCS=${ENABLE_DOCS:-true}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "${PORT:-8051}:8051"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, os; port = os.getenv('PORT', '8051'); prefix = os.getenv('APPLICATION_ROOT', os.getenv('URL_PREFIX', '')).strip('/'); path = f'/{prefix}/api/health' if prefix else '/api/health'; res = urllib.request.urlopen(f'http://127.0.0.1:{port}{path}'); exit(0 if res.getcode() == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

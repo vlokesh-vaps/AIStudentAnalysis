@@ -1,7 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-base" content="{{ request.script_root }}">
   <title>AI Student Performance Analyzer</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
@@ -11,49 +13,139 @@
   <main class="container app-shell py-4 py-lg-5">
     <header class="page-header mb-4">
       <div class="brand-mark" aria-hidden="true">✦</div>
-      <div><p class="eyebrow mb-1">SMARTER CLASSROOM INSIGHTS</p><h1>AI Performance Analysis</h1>
-        <p class="header-subtitle mb-0">Clearer insights. More confident teaching.</p></div>
-      <a class="docs-link ms-auto" href="/swagger" target="_blank" rel="noreferrer">API docs <span>↗</span></a>
+      <div>
+        <p class="eyebrow mb-1">SMARTER CLASSROOM INSIGHTS</p>
+        <h1>AI Performance Analysis</h1>
+        <p class="header-subtitle mb-0">Clearer insights. More confident teaching.</p>
+      </div>
+      {% if docs_enabled %}
+      <a class="docs-link ms-auto" id="docs-link" href="{{ url_for('doc') }}" target="_blank" rel="noreferrer">API docs <span>↗</span></a>
+      {% endif %}
     </header>
 
-    <section class="intro-callout mb-4"><span class="question-mark">?</span><p class="mb-0">Transform raw exam data into insights. Upload reports to see trends, identify students needing support, and generate automated summaries instantly.</p></section>
+    <section class="intro-callout mb-4">
+      <span class="question-mark">?</span>
+      <p class="mb-0">Transform raw exam data into insights. Upload reports to see trends, identify students needing support, and generate automated summaries instantly.</p>
+    </section>
 
     <section class="panel mb-4" id="upload-panel">
       <button class="section-heading" data-bs-toggle="collapse" data-bs-target="#upload-content" aria-expanded="true">
-        <span class="step-number">01</span><span class="heading-copy"><strong>Data Upload</strong><small>Upload class cumulative report (CSV/Excel/PDF)</small></span><span class="chevron">⌄</span>
+        <span class="step-number">01</span>
+        <span class="heading-copy"><strong>Data Upload</strong><small>Upload class cumulative report (CSV/Excel/PDF)</small></span>
+        <span class="chevron">⌄</span>
       </button>
-      <div class="collapse show" id="upload-content"><div class="panel-body">
-        <div class="sample-box" id="sample-box"><div class="sample-title"><span>▦</span> Sample of correct file format</div>
-          <div class="table-responsive"><table class="table sample-table mb-2"><thead><tr><th>Student Name</th><th>English</th><th>Hindi</th><th>Maths</th><th>Science</th></tr></thead><tbody><tr><td>Abhishek Kumar</td><td>85</td><td>78</td><td>92</td><td>88</td></tr><tr><td>Sneha Reddy</td><td>72</td><td>89</td><td>65</td><td>80</td></tr></tbody></table></div>
-          <p class="sample-note mb-0">The file must contain a “Student Name” column or similar. Subject columns should contain numeric marks.</p>
+      <div class="collapse show" id="upload-content">
+        <div class="panel-body">
+          <div class="sample-box" id="sample-box">
+            <div class="sample-title"><span>▦</span> Sample of correct file format</div>
+            <div class="table-responsive">
+              <table class="table sample-table mb-2">
+                <thead>
+                  <tr><th>Student Name</th><th>English</th><th>Hindi</th><th>Maths</th><th>Science</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Abhishek Kumar</td><td>85</td><td>78</td><td>92</td><td>88</td></tr>
+                  <tr><td>Sneha Reddy</td><td>72</td><td>89</td><td>65</td><td>80</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="sample-note mb-0">The file must contain a “Student Name” column or similar. Subject columns should contain numeric marks.</p>
+          </div>
+          <div class="upload-zone mt-4" id="drop-zone">
+            <div class="upload-icon">↑</div>
+            <h2>Drop your class report here</h2>
+            <p>or browse files from your device</p>
+            <label class="btn btn-outline-primary browse-btn" for="file-input">Choose a file</label>
+            <input id="file-input" type="file" accept=".csv,.xlsx,.xls,.pdf" hidden>
+            <small>CSV, XLSX, XLS or PDF · up to 25 MB</small>
+          </div>
+          <div class="upload-progress d-none" id="upload-progress">
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+            <span>Uploading and analyzing your report…</span>
+          </div>
+          <div class="alert alert-success success-banner d-none mt-3 mb-0" id="upload-success">
+            ✅ File uploaded successfully! Scroll down to see the data and start analysis.
+          </div>
         </div>
-        <div class="upload-zone mt-4" id="drop-zone"><div class="upload-icon">↑</div><h2>Drop your class report here</h2><p>or browse files from your device</p><label class="btn btn-outline-primary browse-btn" for="file-input">Choose a file</label><input id="file-input" type="file" accept=".csv,.xlsx,.xls,.pdf" hidden><small>CSV, XLSX, XLS or PDF · up to 25 MB</small></div>
-        <div class="upload-progress d-none" id="upload-progress"><span class="spinner-border spinner-border-sm text-primary"></span><span>Uploading and analyzing your report…</span></div>
-        <div class="alert alert-success success-banner d-none mt-3 mb-0" id="upload-success">✅ File uploaded successfully! Scroll down to see the data and start analysis.</div>
-      </div></div>
+      </div>
     </section>
 
-    <section class="panel mb-4 d-none animate-in" id="data-panel"><div class="panel-body">
-      <div class="content-heading"><div><p class="eyebrow mb-1">YOUR CLASS REPORT</p><h2>Uploaded Report Data</h2><p class="muted mb-0" id="student-count"></p></div><span class="data-chip">✓ Parsed</span></div>
-      <div class="table-responsive data-table-wrap"><table class="table align-middle data-table" id="students-table"><thead id="students-thead"></thead><tbody id="students-tbody"></tbody></table></div>
-      <button class="btn btn-primary btn-lg w-100 analyze-btn" id="class-button"><span class="button-label">Analyze Class Performance</span><span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span><span class="button-arrow">→</span></button>
-    </div></section>
+    <section class="panel mb-4 d-none animate-in" id="data-panel">
+      <div class="panel-body">
+        <div class="content-heading">
+          <div>
+            <p class="eyebrow mb-1">YOUR CLASS REPORT</p>
+            <h2>Uploaded Report Data</h2>
+            <p class="muted mb-0" id="student-count"></p>
+          </div>
+          <span class="data-chip">✓ Parsed</span>
+        </div>
+        <div class="table-responsive data-table-wrap">
+          <table class="table align-middle data-table" id="students-table">
+            <thead id="students-thead"></thead>
+            <tbody id="students-tbody"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary btn-lg w-100 analyze-btn" id="class-button">
+          <span class="button-label">Analyze Class Performance</span>
+          <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+          <span class="button-arrow">→</span>
+        </button>
+      </div>
+    </section>
 
     <section class="panel mb-4 d-none animate-in" id="class-panel">
-      <button class="section-heading" data-bs-toggle="collapse" data-bs-target="#class-content" aria-expanded="true"><span class="step-number">02</span><span class="heading-copy"><strong>Class Performance Overview</strong><small>AI-generated insights for the entire class</small></span><span class="chevron">⌄</span></button>
-      <div class="collapse show" id="class-content"><div class="panel-body" id="class-results"></div></div>
+      <button class="section-heading" data-bs-toggle="collapse" data-bs-target="#class-content" aria-expanded="true">
+        <span class="step-number">02</span>
+        <span class="heading-copy"><strong>Class Performance Overview</strong><small>AI-generated insights for the entire class</small></span>
+        <span class="chevron">⌄</span>
+      </button>
+      <div class="collapse show" id="class-content">
+        <div class="panel-body" id="class-results"></div>
+      </div>
     </section>
 
     <section class="panel mb-4 d-none animate-in" id="student-panel">
-      <button class="section-heading" data-bs-toggle="collapse" data-bs-target="#student-content" aria-expanded="false"><span class="step-number">03</span><span class="heading-copy"><strong>Individual Student Analysis</strong><small>Deep dive into specific student performance</small></span><span class="chevron">⌄</span></button>
-      <div class="collapse" id="student-content"><div class="panel-body">
-        <div class="row g-3 align-items-end"><div class="col-md-8"><label class="form-label" for="student-select">Choose a student</label><select class="form-select form-select-lg" id="student-select"><option value="">Select a student…</option></select></div><div class="col-md-4"><button class="btn btn-primary btn-lg w-100" id="student-button" disabled><span class="button-label">Get Individual Analysis</span><span class="spinner-border spinner-border-sm d-none"></span></button></div></div>
-        <div id="student-results" class="mt-4"></div>
-      </div></div>
+      <button class="section-heading" data-bs-toggle="collapse" data-bs-target="#student-content" aria-expanded="false">
+        <span class="step-number">03</span>
+        <span class="heading-copy"><strong>Individual Student Analysis</strong><small>Deep dive into specific student performance</small></span>
+        <span class="chevron">⌄</span>
+      </button>
+      <div class="collapse" id="student-content">
+        <div class="panel-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-8">
+              <label class="form-label" for="student-select">Choose a student</label>
+              <select class="form-select form-select-lg" id="student-select">
+                <option value="">Select a student…</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-primary btn-lg w-100" id="student-button" disabled>
+                <span class="button-label">Get Individual Analysis</span>
+                <span class="spinner-border spinner-border-sm d-none"></span>
+              </button>
+            </div>
+          </div>
+          <div id="student-results" class="mt-4"></div>
+        </div>
+      </div>
     </section>
     <footer class="app-footer">Thoughtful insights for every learner <span>•</span> Powered by AI</footer>
   </main>
   <div class="toast-container position-fixed top-0 end-0 p-3" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script id="app-config" type="application/json">
+    {{ {"basePath": request.script_root, "apiPrefix": request.script_root ~ "/api", "docsUrl": url_for('doc') if docs_enabled else ""}|tojson }}
+  </script>
+  <script>
+    window.__APP_CONFIG__ = {
+      basePath: {{ request.script_root|tojson }},
+      apiPrefix: {{ (request.script_root ~ '/api')|tojson }},
+      docsUrl: {{ (url_for('doc') if docs_enabled else '')|tojson }}
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-</body></html>
+</body>
+</html>
